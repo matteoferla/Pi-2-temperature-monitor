@@ -51,5 +51,10 @@ Great... now:
         sudo systemctl start temperature
         sudo systemctl enable temperature
 
+Made a mistake?
+
+       sudo systemctl restart apache2
+       sudo systemctl restart temperature
+
 
 
