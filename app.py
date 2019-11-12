@@ -55,7 +55,7 @@ def get_data():
     dt = []
     temp = []
     hum = []
-    with open('temp.log') as fh:
+    with open('/home/pi/Pi-2-temperature-monitor/temp.log') as fh:
         for line in fh:
             if line[0] == 'T':
                 reading = re.match('Time=(?P<dt>[\d+\-\ \:]+); Temp=(?P<temp>[\-\.\d]+)C; Humidity=(?P<hum>[\-\.\d]+)%;', line).groupdict()

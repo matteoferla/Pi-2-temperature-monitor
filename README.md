@@ -48,6 +48,8 @@ Great... now:
         sudo cp temperature.conf /etc/apache2/sites-available/temperature.conf
         sudo a2ensite temperature.conf
         sudo cp temperature.service /etc/systemd/system/temperature.service
+        sudo systemctl start temperature
+        sudo systemctl enable temperature
 
 
 
