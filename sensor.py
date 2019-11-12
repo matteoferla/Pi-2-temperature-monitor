@@ -5,7 +5,7 @@ from datetime import datetime
 DHT_SENSOR = Adafruit_DHT.DHT11
 DHT_PIN = 4
 
-fh = open('/home/pi/temp.log', 'a')
+fh = open('/home/pi/Pi-2-temperature-monitor/temp.log', 'a')
 while True:
     humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)
     if humidity is not None and temperature is not None:
