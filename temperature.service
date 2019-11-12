@@ -1,0 +1,9 @@
+[Unit]
+Description=Temperature.
+
+[Service]
+Type=simple
+ExecStart=/home/pi/berryconda3/bin/python3 /home/pi/temperature/sensor.py
+
+[Install]
+WantedBy=multi-user.target
