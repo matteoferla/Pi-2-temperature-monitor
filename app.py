@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 from flask import Flask, render_template_string
 from scipy.signal import savgol_filter
 import json, re

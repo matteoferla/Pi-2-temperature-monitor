@@ -8,11 +8,6 @@ Temperature sensor, logger and site
 Fresh microSD card: `Raspbian Buster with desktop and recommended software` installed with `BalenaEtcher.app`.
 Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface`.
 
-## Apache2
-
-	sudo apt update
-	sudo apt install apache2
-        sudo apt-get install libapache2-mod-wsgi
 
 ## Conda
 
@@ -26,6 +21,15 @@ Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface`.
         yes | pip3 install --upgrade setuptools
 	yes | pip3 install Adafruit_DHT
 
+## Apache2
+
+	sudo apt update
+	sudo apt install apache2
+        sudo apt-get install libapache2-mod-wsgi-py3
+        sudo a2dissite 000-default
+        sudo apt-get install apache2-dev
+        pip3 install mod_wsgi
+        sudo /home/pi/berryconda3/bin/mod_wsgi-express install-module
 
 ## Repo
 
@@ -55,6 +59,8 @@ Made a mistake?
 
        sudo systemctl restart apache2
        sudo systemctl restart temperature
+       sudo tail /var/log/apache2/error.log
+       sudo systemctl status apache2.service
 
 
 
