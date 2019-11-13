@@ -3,7 +3,7 @@ Description=Temperature.
 
 [Service]
 Type=simple
-ExecStart=/home/pi/berryconda3/bin/python3 /home/pi/Pi-2-temperature-monitor/sensor.py
+ExecStart=/home/pi/berryconda3/bin/python3 /home/pi/Pi-2-temperature-monitor/sensor_n_app.py
 
 [Install]
 WantedBy=multi-user.target

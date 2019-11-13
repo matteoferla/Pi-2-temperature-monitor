@@ -2,8 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template_string
+from waitress import serve
 from scipy.signal import savgol_filter
 import json, re
+import threading
+import Adafruit_DHT
+import time
+from datetime import datetime
+
+DHT_SENSOR = Adafruit_DHT.DHT11
+DHT_PIN = 4
 
 
 page = '''
@@ -83,5 +91,17 @@ def hello_world():
                                   temp=json.dumps(temp),
                                   hum=json.dumps(hum))
 
+
+def sensor():
+    fh = open('/home/pi/Pi-2-temperature-monitor/temp.log', 'a')
+    while True:
+        humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)
+        if humidity is not None and temperature is not None:
+            fh.write("Time={0}; Temp={1:0.1f}C; Humidity={2:0.1f}%;\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), temperature, humidity))
+        else:
+            print("Sensor failure. Check wiring!")
+        time.sleep(30)
+
 if __name__ == '__main__':
-    app.run()
+    threading.Thread(target=sensor).start()
+    serve(app, host='0.0.0.0', port=8000)
