@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template_string
+from waitress import serve
 from scipy.signal import savgol_filter
 import json, re
 
@@ -84,4 +85,4 @@ def hello_world():
                                   hum=json.dumps(hum))
 
 if __name__ == '__main__':
-    app.run()
+    serve(app, host='0.0.0.0', port=8000)
