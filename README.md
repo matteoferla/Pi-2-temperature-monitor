@@ -20,6 +20,7 @@ Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface`.
 	yes | conda install -y flask scipy numpy pandas
         yes | pip3 install --upgrade setuptools
 	yes | pip3 install Adafruit_DHT
+        yes | pip3 install waitress
 
 ## Apache2
 
@@ -27,9 +28,22 @@ Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface`.
 	sudo apt install apache2
         sudo apt-get install libapache2-mod-wsgi-py3
         sudo a2dissite 000-default
+
+Previously I had tried to do it with mod_wsgi. But this requires to be compiled by the version of python you are using. So for berryconda I did:
+
         sudo apt-get install apache2-dev
         pip3 install mod_wsgi
+        reboot
         sudo /home/pi/berryconda3/bin/mod_wsgi-express install-module
+
+However, when I added these lines to the apache2 conf file it did not work...
+
+     LoadModule wsgi_module modules/mod_wsgi.so
+     WSGIPythonHome /home/pi/berryconda/bin
+     WSGIPythonPath /home/pi/berryconda/bin:/home/pi/berryconda/pkgs
+     WSGIScriptAlias /temperature /home/pi/Pi-2-temperature-monitor/wsgi.py
+
+So I went back to using reverse proxy.
 
 ## Repo
 
