@@ -12,6 +12,7 @@ from datetime import datetime
 
 DHT_SENSOR = Adafruit_DHT.DHT11
 DHT_PIN = 4
+LOGFILE = '/home/pi/Pi-2-temperature-monitor/temp.log'
 
 
 page = '''
@@ -48,11 +49,12 @@ var data = [trace1, trace2];
 
 var layout = {
   title: 'Bedroom temperature',
-  yaxis: {title: 'Temperature [°C]'},
+  yaxis: {title: 'Temperature [°C]', range: [15,40], dtick: 1},
   yaxis2: {
-    title: 'Umiditing [%]',
+    title: 'Humidity [%]',
     overlaying: 'y',
-    side: 'right'
+    side: 'right',
+    range: [0,100], dtick: 100/25
   }
 };
 
@@ -66,7 +68,7 @@ def get_data():
     dt = []
     temp = []
     hum = []
-    with open('/home/pi/Pi-2-temperature-monitor/temp.log') as fh:
+    with open(LOGFILE) as fh:
         for line in fh:
             if line[0] == 'T':
                 reading = re.match('Time=(?P<dt>[\d+\-\ \:]+); Temp=(?P<temp>[\-\.\d]+)C; Humidity=(?P<hum>[\-\.\d]+)%;', line).groupdict()
@@ -84,7 +86,7 @@ app = Flask(__name__)
 
 
 @app.route('/')
-def hello_world():
+def serve_data():
     dt, temp, hum = get_data()
     return render_template_string(page,
                                   dt=json.dumps(dt),
@@ -93,7 +95,7 @@ def hello_world():
 
 
 def sensor():
-    fh = open('/home/pi/Pi-2-temperature-monitor/temp.log', 'a')
+    fh = open(LOGFILE, 'a')
     while True:
         humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)
         if humidity is not None and temperature is not None:
