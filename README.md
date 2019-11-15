@@ -26,9 +26,10 @@ I went with conda as I don't want the pain that is the installing anything on th
 	yes | pip3 install --upgrade pip
 	yes | pip3 install -U $(pip freeze | awk '{split($0, a, "=="); print a[1]}')
 	conda install -y flask scipy numpy pandas
-        yes | pip3 install --upgrade setuptools
-	yes | pip3 install Adafruit_DHT
-        yes | pip3 install waitress
+    yes | pip3 install --upgrade setuptools
+	#yes | pip3 install Adafruit_DHT
+	yes | pip3 install adafruit-circuitpython-dht
+    yes | pip3 install waitress
 
 
 NB. I have had no success getting python 3.7 on a pi 2. So this is all 3.6.
@@ -39,38 +40,38 @@ In the first iteratition I was going get mod_wsgi to server. Then I remembered t
 
 	sudo apt update
 	sudo apt install apache2
-        sudo a2dissite 000-default
+    sudo a2dissite 000-default
 
 Reverse proxy route?
 
-        sudo a2enmod proxy
-        sudo a2enmod proxy_http
-        sudo a2enmod proxy_balancer
-        sudo a2enmod lbmethod_byrequests
+    sudo a2enmod proxy
+    sudo a2enmod proxy_http
+    sudo a2enmod proxy_balancer
+    sudo a2enmod lbmethod_byrequests
 
 Previously I had tried to do it with mod_wsgi. But this requires to be compiled by the version of python you are using. So for berryconda I did:
 
 This installs using the system py2 version
 
-        sudo apt-get install libapache2-mod-wsgi
+    sudo apt-get install libapache2-mod-wsgi
 
 This installs using the system py3 version
 
-        sudo apt-get install libapache2-mod-wsgi-py3
+    sudo apt-get install libapache2-mod-wsgi-py3
 
 This builds mod_wsgi
 
-        sudo apt-get install apache2-dev
-        pip3 install mod_wsgi
-        reboot
-        sudo /home/pi/berryconda3/bin/mod_wsgi-express install-module
+    sudo apt-get install apache2-dev
+    pip3 install mod_wsgi
+    reboot
+    sudo /home/pi/berryconda3/bin/mod_wsgi-express install-module
 
 However, when I added these lines to the apache2 conf file it did not work...
 
-     LoadModule wsgi_module modules/mod_wsgi.so
-     WSGIPythonHome /home/pi/berryconda/bin
-     WSGIPythonPath /home/pi/berryconda/bin:/home/pi/berryconda/pkgs
-     WSGIScriptAlias /temperature /home/pi/Pi-2-temperature-monitor/wsgi.py
+    LoadModule wsgi_module modules/mod_wsgi.so
+    WSGIPythonHome /home/pi/berryconda/bin
+    WSGIPythonPath /home/pi/berryconda/bin:/home/pi/berryconda/pkgs
+    WSGIScriptAlias /temperature /home/pi/Pi-2-temperature-monitor/wsgi.py
 
 I don't think I am the only person wanting to use berryconda and mod_wsgi.
 But reverse proxy is a perfectly fine solution, the only catch is that the app needs to be on systemd.
@@ -79,37 +80,37 @@ But reverse proxy is a perfectly fine solution, the only catch is that the app n
 
 There is a phylosophy of where to dump files. I ignore it and put everything on the Desktop or in home.
 
-        cd
-        git clone https://github.com/matteoferla/Pi-2-temperature-monitor.git
+    cd
+    git clone https://github.com/matteoferla/Pi-2-temperature-monitor.git
 	
 
 But does it work?
 
-        cd Pi-2-temperature-monitor
+    cd Pi-2-temperature-monitor
 
-        python sensor.py
-        #kill. Then try.
-        python app.py
+    python sensor.py
+    #kill. Then try.
+    python app.py
 
 Great... now:
 
-        sudo cp temperature.service /etc/systemd/system/temperature.service
-        sudo systemctl start temperature
-        sudo systemctl enable temperature
-        #sudo cp temperature.conf /etc/apache2/sites-available/temperature.conf
-        #sudo a2ensite temperature.conf
+    sudo cp temperature.service /etc/systemd/system/temperature.service
+    sudo systemctl start temperature
+    sudo systemctl enable temperature
+    #sudo cp temperature.conf /etc/apache2/sites-available/temperature.conf
+    #sudo a2ensite temperature.conf
 
 
-Made a mistake?
+Made a mistake or a change?
 
-       sudo systemctl restart temperature
-       systemctl daemon-reload
+    sudo systemctl restart temperature
+    systemctl daemon-reload
 
 If I am using apache2.
 
-       sudo systemctl restart apache2
-       sudo tail /var/log/apache2/error.log
-       sudo systemctl status apache2.service
+    sudo systemctl restart apache2
+    sudo tail /var/log/apache2/error.log
+    sudo systemctl status apache2.service
 
 # Upgrades
 
@@ -117,5 +118,9 @@ I am going to switching to Adafruit DHR_22 and SGP30 Air Quality Sensor in order
 
 Previously, I have tried twice and failed to set up a 433MHz receiever to intercept the data from an Oregon Scientific THGN132 (both versions) using code others wrote. However, I could get 433MHz communication going so I think it was the OregonPi code.
 
+
+Wiring. GPIO 4 is #7. 
+
+My level shifter (flat board thing with 8 pins each side to change 5V <=> 3.3V) has two channels each way and two sides the 5V side has an HV next to the GND. LV is 3.5V. The RXI on either flank of the 5V side is the _in_, while the RXO is the _out_ on the 3.3V side.
 
 

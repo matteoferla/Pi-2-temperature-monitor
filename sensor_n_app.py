@@ -6,11 +6,12 @@ from waitress import serve
 from scipy.signal import savgol_filter
 import json, re
 import threading
-import Adafruit_DHT
+import board
+import adafruit_dht  #yes | pip3 install adafruit-circuitpython-dht
 import time
 from datetime import datetime
 
-DHT_SENSOR = Adafruit_DHT.DHT11
+DHT_SENSOR = adafruit_dht.DHT22(board.D4)
 DHT_PIN = 4
 LOGFILE = '/home/pi/Pi-2-temperature-monitor/temp.log'
 
