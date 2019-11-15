@@ -1,9 +1,9 @@
 # Pi-2-temperature-monitor
-Temperature sensor, logger and site.
+Temperature sensor, logger and [site](http://temperature.matteoferla.com/).
 
 Namely, sensor collects data every half-minute, currently DHR-11 and a Waitress served Flask app shows the data on port 8000 as a nice interactive plotly graph.
 
-Hardware Rasberry pi 2B. So ought to work with a 3, 4 etc.
+Hardware Rasberry pi 2B. So "ought" to work with a 3, 4 etc. <cackle>
 
 This is the list of commands I typed. It is not a tutorial. But you are welcome to steal code.
 
@@ -35,7 +35,7 @@ NB. I have had no success getting python 3.7 on a pi 2. So this is all 3.6.
 
 ## Apache2
 
-In the first iteratition I was going get mod_wsgi to server. Then I remembered that all 80/443 traffic though my home modem goes to another computer anyway —not sure how. So I don't need apache2. 
+In the first iteratition I was going get mod_wsgi to server. Then I remembered that all 80/443 traffic though my home modem goes to another computer anyway —not sure how I forgot. So I don't need apache2 here. 
 
 	sudo apt update
 	sudo apt install apache2
