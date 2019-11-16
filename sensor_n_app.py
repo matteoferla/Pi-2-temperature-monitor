@@ -15,22 +15,8 @@ wd = os.path.split(__file__)[0]
 if wd:
     os.chdir(wd)
 
-"""
-Time=2019-11-12 10:49:33; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:50:03; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:50:34; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:51:05; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:51:35; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:52:06; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:52:36; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:53:07; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:53:37; Temp=20.0C; Humidity=44.0%;
-Time=2019-11-12 10:54:08; Temp=20.0C; Humidity=44.0%;
-"""
-
-
 ######################################################
-## APP & Models
+## App & Models
 ######################################################
 
 app = Flask(__name__)
@@ -118,10 +104,35 @@ def get_nighttime(dt):
 def serve_data():
     dt, temp, hum = get_data()
     nights, twilights = get_nighttime(dt)
+    shapes = [
+                {'type': 'rect',
+                'xref': 'x',
+                'yref': 'paper',
+                'x0': dusk,
+                'y0': 0,
+                'x1': dawn,
+                'y1': 1,
+                'fillcolor': '#191970', #midnightblue
+                'opacity': 0.2,
+                'line': {'width': 0}
+                } for dusk, dawn in nights] +\
+            [
+                {'type': 'rect',
+                 'xref': 'x',
+                 'yref': 'paper',
+                 'x0': a,
+                 'y0': 0,
+                 'x1': b,
+                 'y1': 1,
+                 'fillcolor': '#6495ed', #cornflowerblue
+                 'opacity': 0.2,
+                 'line': {'width': 0}
+                 } for a, b in twilights]
     return render_template('temperature.html',
                                   dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
                                   temp=json.dumps(temp),
-                                  hum=json.dumps(hum))
+                                  hum=json.dumps(hum),
+                                  shapes=json.dumps(shapes))
 
 ######################################################
 ## SENSING CORE

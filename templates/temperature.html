@@ -37,7 +37,8 @@ var layout = {
     overlaying: 'y',
     side: 'right',
     range: [0,100], dtick: 100/25
-  }
+  },
+  shapes: {{ shapes|safe}}
 };
 
 Plotly.newPlot('graph', data, layout);
