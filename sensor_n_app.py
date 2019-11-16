@@ -12,7 +12,8 @@ import Adafruit_DHT
 import time, os
 from datetime import datetime
 
-os.chdir(os.path.split(__file__)[0])
+if __file__:
+    os.chdir(os.path.split(__file__)[0])
 
 """
 Time=2019-11-12 10:49:33; Temp=20.0C; Humidity=44.0%;
