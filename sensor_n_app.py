@@ -75,7 +75,7 @@ def get_data():
     for m in Measurement.query.all():
         temp.append(m.temperature)
         dt.append(m.datetime.strftime('%Y-%m-%d %H:%M:%S'))
-        hum.append(m.hum)
+        hum.append(m.humidity)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
     return dt, smooth(temp), smooth(hum)
