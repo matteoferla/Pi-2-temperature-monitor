@@ -4,7 +4,7 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
-from scipy.signal import savgol_filter
+#from scipy.signal import savgol_filter
 import json, re
 import threading
 import Adafruit_DHT
