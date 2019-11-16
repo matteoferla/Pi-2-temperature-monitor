@@ -74,7 +74,7 @@ def get_data():
     #db.session.count(Measurement)
     for m in Measurement.query.all():
         temp.append(m.temperature)
-        dt.append(m.datetime.strftime('%Y-%m-%d %H:%M:%S'))
+        dt.append(m.datetime)
         hum.append(m.humidity)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
@@ -119,7 +119,7 @@ def serve_data():
     dt, temp, hum = get_data()
     nights, twilights = get_nighttime(dt)
     return render_template('temperature.html',
-                                  dt=json.dumps(dt),
+                                  dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
                                   temp=json.dumps(temp),
                                   hum=json.dumps(hum))
 
