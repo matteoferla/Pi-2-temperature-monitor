@@ -93,7 +93,7 @@ def get_nighttime(dt):
             d = day.date
             previous = datetime(d.year, d.month, d.day, 0, 0, 0)
         nights.append([previous.strftime(standard), day.dawn.strftime(standard)])
-        previous = day.dusk.strftime(standard)
+        previous = day.dusk
         twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
         twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
     d = day.date
