@@ -55,7 +55,7 @@ class Sunpath(db.Model):
     """
     __tablename__ = 'sunpath'
     id = db.Column(db.Integer, primary_key=True)
-    datetime = db.Column(db.Date, unique=True, nullable=False)
+    date = db.Column(db.Date, unique=True, nullable=False)
     dawn = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunrise = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunset = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
@@ -144,7 +144,7 @@ def sense():
             time.sleep(5)
         else:
             l = len(temps)
-            m = Measurement(date=tick, temperature=sum(temps)/l, humidity=sum(hums)/l)
+            m = Measurement(datetime=tick, temperature=sum(temps)/l, humidity=sum(hums)/l)
             db.session.add(m)
             db.session.commit()
 
