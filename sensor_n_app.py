@@ -1,110 +1,126 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template_string
+from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
 from scipy.signal import savgol_filter
 import json, re
 import threading
-import board
-import adafruit_dht  #yes | pip3 install adafruit-circuitpython-dht
-import time
+import Adafruit_DHT
+
+import time, os
 from datetime import datetime
 
-DHT_SENSOR = adafruit_dht.DHT22(board.D4)
-DHT_PIN = 4
-LOGFILE = '/home/pi/Pi-2-temperature-monitor/temp.log'
+os.chdir(os.path.split(__file__)[0])
+
+"""
+Time=2019-11-12 10:49:33; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:50:03; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:50:34; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:51:05; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:51:35; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:52:06; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:52:36; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:53:07; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:53:37; Temp=20.0C; Humidity=44.0%;
+Time=2019-11-12 10:54:08; Temp=20.0C; Humidity=44.0%;
+"""
 
 
-page = '''
-<!doctype html>
+######################################################
+## APP & Models
+######################################################
 
-<html lang="en">
-<head>
-  <meta charset="utf-8">
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///temperature.sqlite"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-  <title>Temperature logger</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+db = SQLAlchemy(app)
 
-</head>
+class Measurement(db.Model):
+    """
+    The table containing the measurements.
+    """
+    __tablename__ = 'measurements'
+    id = db.Column(db.Integer, primary_key=True)
+    datetime = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
+    temperature = db.Column(db.Float, unique=False, nullable=False)
+    humidity = db.Column(db.Float, unique=False, nullable=False)
 
-<body>
-  <div id="graph" style="height:600px;width:800px;"></div>
-  <script type="text/javascript">
-  var trace1 = {
-  x: {{dt|safe}},
-  y: {{temp|safe}},
-  name: 'temperature',
-  type: 'scatter'
-};
+class Sunpath(db.Model):
+    """
+    The table containing the sun details.
+    """
+    __tablename__ = 'sunpath'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    sunrise = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
+    sunset = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
 
-var trace2 = {
-  x: {{dt|safe}},
-  y: {{hum|safe}},
-  name: 'humidity',
-  yaxis: 'y2',
-  type: 'scatter'
-};
+engine = db.create_engine(app.config["SQLALCHEMY_DATABASE_URI"], {})
 
-var data = [trace1, trace2];
-
-var layout = {
-  title: 'Bedroom temperature',
-  yaxis: {title: 'Temperature [°C]', range: [15,40], dtick: 1},
-  yaxis2: {
-    title: 'Humidity [%]',
-    overlaying: 'y',
-    side: 'right',
-    range: [0,100], dtick: 100/25
-  }
-};
-
-Plotly.newPlot('graph', data, layout);
-  </script>
-</body>
-</html>
-'''
+######################################################
+## Single view
+######################################################
 
 def get_data():
     dt = []
     temp = []
     hum = []
-    with open(LOGFILE) as fh:
-        for line in fh:
-            if line[0] == 'T':
-                reading = re.match('Time=(?P<dt>[\d+\-\ \:]+); Temp=(?P<temp>[\-\.\d]+)C; Humidity=(?P<hum>[\-\.\d]+)%;', line).groupdict()
-                t = float(reading['temp'])
-                h = float(reading['hum'])
-                if t > 50 or h > 100:
-                    continue
-                dt.append(reading['dt'])
-                temp.append(t)
-                hum.append(h)
-    smooth = lambda a: savgol_filter(a, 31, 3).tolist()
+    #db.session.count(Measurement)
+    for m in Measurement.query.all():
+        temp.append(m.temperature)
+        dt.append(m.datetime)
+        hum.append(m.hum)
+    #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
+    smooth = lambda a: a
     return dt, smooth(temp), smooth(hum)
-
-app = Flask(__name__)
-
 
 @app.route('/')
 def serve_data():
     dt, temp, hum = get_data()
-    return render_template_string(page,
+    return render_template('temperature.html',
                                   dt=json.dumps(dt),
                                   temp=json.dumps(temp),
                                   hum=json.dumps(hum))
 
+######################################################
+## SENSING CORE
+######################################################
 
-def sensor():
-    fh = open(LOGFILE, 'a')
+def sense():
     while True:
-        humidity, temperature = Adafruit_DHT.read(DHT_SENSOR, DHT_PIN)
-        if humidity is not None and temperature is not None:
-            fh.write("Time={0}; Temp={1:0.1f}C; Humidity={2:0.1f}%;\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), temperature, humidity))
+        tick = datetime.now()
+        temps = []
+        hums = []
+        while (datetime.now()-tick).seconds < 300:
+            error_count = 0
+            (humidity, temperature) = Adafruit_DHT.read(22, 4) #An AM2306 is the same as a DHT22.
+            if humidity is not None and temperature is not None:
+                temps.append(temperature)
+                hums.append(humidity)
+            else:
+                error_count += 1
+                #print("Sensor failure. Check wiring!")
+            time.sleep(5)
         else:
-            print("Sensor failure. Check wiring!")
-        time.sleep(30)
+            l = len(temps)
+            m = Measurement(date=tick, temperature=sum(temps)/l, humidity=sum(hums)/l)
+            db.session.add(m)
+            db.session.commit()
+
+
+######################################################
+## Main
+######################################################
+
 
 if __name__ == '__main__':
-    threading.Thread(target=sensor).start()
+    threading.Thread(target=sense).start()
     serve(app, host='0.0.0.0', port=8000)
+else:
+    pass
+    # the user is making the db thusly:
+    # from sensor_n_app.py import db
+    # db.create_all()
