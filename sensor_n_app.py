@@ -96,7 +96,7 @@ def get_nighttime(dt):
         previous = day.dusk.strftime(standard)
         twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
         twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
-    d = previous.date
+    d = day.date
     ender = datetime(d.year, d.month, d.day, 23, 59, 59)
     nights.append([previous.strftime(standard), ender.strftime(standard)])
     return nights, twilights
@@ -116,8 +116,9 @@ def serve_data():
                 'x1': dawn,
                 'y1': 1,
                 'fillcolor': '#191970', #midnightblue
-                'opacity': 0.2,
-                'line': {'width': 0}
+                'opacity': 0.4,
+                'line': {'width': 0},
+                'layer': 'below'
                 } for dusk, dawn in nights] +\
             [
                 {'type': 'rect',
@@ -128,8 +129,9 @@ def serve_data():
                  'x1': b,
                  'y1': 1,
                  'fillcolor': '#6495ed', #cornflowerblue
-                 'opacity': 0.2,
-                 'line': {'width': 0}
+                 'opacity': 0.4,
+                 'line': {'width': 0},
+                 'layer': 'below'
                  } for a, b in twilights]
     return render_template('temperature.html',
                                   dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
