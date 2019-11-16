@@ -5,8 +5,7 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
 #from scipy.signal import savgol_filter
-import json, re
-import threading
+import json, re, threading, requests
 import Adafruit_DHT
 
 import time, os
@@ -57,8 +56,10 @@ class Sunpath(db.Model):
     __tablename__ = 'sunpath'
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, unique=True, nullable=False)
+    dawn = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunrise = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunset = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
+    dusk = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
 
 engine = db.create_engine(app.config["SQLALCHEMY_DATABASE_URI"], {})
 
@@ -73,15 +74,50 @@ def get_data():
     #db.session.count(Measurement)
     for m in Measurement.query.all():
         temp.append(m.temperature)
-        dt.append(m.datetime)
+        dt.append(m.datetime.strftime('%Y-%m-%d %H:%M:%S'))
         hum.append(m.hum)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
     return dt, smooth(temp), smooth(hum)
 
+def fetch_sunpath(date):
+    standard='%Y-%m-%dT%H:%M:%S+00:00'
+    url = 'https://api.sunrise-sunset.org/json?lat=51.746000&lng=-1.258200'
+    data = requests.get(f'{url}&date={date.year}-{date.month}-{date.day}&formatted=0').json()['results']
+    s = Sunpath(date=date,
+                dawn=datetime.strptime(data['civil_twilight_begin'], standard),
+                sunrise=datetime.strptime(data['sunrise'], standard),
+                sunset=datetime.strptime(data['sunset'], standard),
+                dusk=datetime.strptime(data['civil_twilight_end'], standard)
+                )
+    db.session.add(s)
+    db.session.commit()
+
+def get_nighttime(dt):
+    standard = '%Y-%m-%d %H:%M:%S'
+    for dtime in dt:
+        date = dtime.date()
+        if Sunpath.query.filter(Sunpath.date == date).first() is None:
+            fetch_sunpath(date)
+    previous = None
+    nights = []
+    twilights = []
+    for day in Sunpath.query.order_by(Sunpath.date).all():
+        if previous is None:
+            d = day.date
+            previous = datetime(d.year, d.month, d.day, 0, 0, 0)
+        nights.append([previous.strftime(standard), day.dawn.strftime(standard)])
+        previous = day.dusk.strftime(standard)
+        twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
+        twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
+    return nights, twilights
+
+
+
 @app.route('/')
 def serve_data():
     dt, temp, hum = get_data()
+    nights, twilights = get_nighttime(dt)
     return render_template('temperature.html',
                                   dt=json.dumps(dt),
                                   temp=json.dumps(temp),
