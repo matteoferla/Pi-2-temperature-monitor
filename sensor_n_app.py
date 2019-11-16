@@ -156,9 +156,9 @@ def sense():
 
 if __name__ == '__main__':
     threading.Thread(target=sense).start()
-    serve(app, host='0.0.0.0', port=8000)
+    serve(app, host='0.0.0.0', port=8123)
 else:
     pass
     # the user is making the db thusly:
-    # from sensor_n_app.py import db
+    # from sensor_n_app import db
     # db.create_all()

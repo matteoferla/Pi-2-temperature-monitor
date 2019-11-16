@@ -43,7 +43,7 @@ For the long run having a DB would be good.
     pip3 install -U Flask-SQLAlchemy
     sudo apt install sqlite3
     python3
-    > from sensor_n_app.py import db
+    > from sensor_n_app import db
     > db.create_all()
     
 On my Pi 3B, the older Adafruit_DHT works while adafruit-circuitpython-dht gives me 
