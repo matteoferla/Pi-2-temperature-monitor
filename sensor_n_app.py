@@ -55,7 +55,7 @@ class Sunpath(db.Model):
     """
     __tablename__ = 'sunpath'
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, unique=True, nullable=False)
+    datetime = db.Column(db.Date, unique=True, nullable=False)
     dawn = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunrise = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     sunset = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
