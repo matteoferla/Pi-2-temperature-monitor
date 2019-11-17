@@ -269,7 +269,7 @@ def sense():
 
 if __name__ == '__main__':
     threading.Thread(target=sense).start()
-    serve(app, host='0.0.0.0', port=8123)
+    serve(app, host='0.0.0.0', port=8000)
 else:
     pass
     # the user is making the db thusly:
