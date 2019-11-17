@@ -7,8 +7,11 @@ from waitress import serve
 #from scipy.signal import savgol_filter
 import json, re, threading, requests
 import Adafruit_DHT
-
-import time, os
+import time
+import board
+import busio
+import adafruit_sgp30
+import os
 from datetime import datetime
 
 wd = os.path.split(__file__)[0]
@@ -37,6 +40,9 @@ class Measurement(db.Model):
     datetime = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     temperature = db.Column(db.Float, unique=False, nullable=False)
     humidity = db.Column(db.Float, unique=False, nullable=False)
+    CO2 = db.Column(db.Float, unique=False, nullable=False)
+    VOC = db.Column(db.Float, unique=False, nullable=False)
+
 
 class Sunpath(db.Model):
     """
@@ -214,24 +220,38 @@ def serve_data():
 ## SENSING CORE
 ######################################################
 
+i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
+sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
+sgp30.iaq_init()
+sgp30.set_iaq_baseline(0x8973, 0x8aae)
+
 def sense():
     while True:
         tick = datetime.now()
         temps = []
         hums = []
+        CO2 = []
+        VOC = []
         while (datetime.now()-tick).seconds < 300:
             error_count = 0
             (humidity, temperature) = Adafruit_DHT.read(22, 4) #An AM2306 is the same as a DHT22.
-            if humidity is not None and temperature is not None:
+            measured_CO2, measured_VOC = sgp30.iaq_measure()
+            if humidity is not None and temperature is not None and measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
                 hums.append(humidity)
+                CO2.append(measured_CO2)
+                VOC.append(measured_VOC)
             else:
                 error_count += 1
                 #print("Sensor failure. Check wiring!")
             time.sleep(5)
         else:
             l = len(temps)
-            m = Measurement(datetime=tick, temperature=sum(temps)/l, humidity=sum(hums)/l)
+            m = Measurement(datetime=tick,
+                            temperature=sum(temps)/l,
+                            humidity=sum(hums)/l,
+                            CO2=sum(CO2)/l,
+                            VOC=sum(VOC)/l)
             db.session.add(m)
             db.session.commit()
 
