@@ -162,7 +162,7 @@ def get_forecast(dt):
     ftime  = []
     ftemp = []
     fhum = []
-    for day in Forecast.query.order_by(Sunpath.date).all():
+    for day in Forecast.query.order_by(Forecast.date).all():
         if day.historical is False and day.date != datetime.now().date():
             fetch_forecast(datetime(day.date.year, day.date.month, day.date.day))
         ftime.extend(day.hours)
