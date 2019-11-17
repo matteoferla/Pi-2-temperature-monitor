@@ -113,8 +113,8 @@ def fetch_sunpath(date):
 def fetch_forecast(dtime):
         demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
         ut = dtime.timestamp() # date has no timestamp
-        url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{ut}'
-        data = requests.get(f'{url}&date={dtime.year}-{dtime.month}-{dtime.day}&formatted=0').json()
+        url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{round(ut)}'
+        data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
         hours = [datetime.utcfromtimestamp(hr['time']) for hr in data['hourly']['data']]
@@ -138,6 +138,7 @@ def get_nighttime(dt):
     previous = None
     nights = []
     twilights = []
+    day = None
     for day in Sunpath.query.order_by(Sunpath.date).all():
         if previous is None:
             d = day.date
@@ -146,9 +147,12 @@ def get_nighttime(dt):
         previous = day.dusk
         twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
         twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
-    d = day.date
-    ender = datetime(d.year, d.month, d.day, 23, 59, 59)
-    nights.append([previous.strftime(standard), ender.strftime(standard)])
+    if not day is None:
+        d = day.date
+        ender = datetime(d.year, d.month, d.day, 23, 59, 59)
+        nights.append([previous.strftime(standard), ender.strftime(standard)])
+    else:
+        print('NO DATA! Is this the first run?')
     return nights, twilights
 
 def get_forecast(dt):
