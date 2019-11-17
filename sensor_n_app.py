@@ -117,7 +117,7 @@ def fetch_forecast(dtime):
         data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
-        hours = [datetime.utcfromtimestamp(hr['time']) for hr in data['hourly']['data']]
+        hours = [datetime.utcfromtimestamp(hr['time']).strftime(standard) for hr in data['hourly']['data']]
         icon = data['daily']['data'][0]['icon']
         historical = dtime.date() != datetime.now().date()
         f = Forecast(date=dtime.date(),
@@ -205,7 +205,7 @@ def serve_data():
                            dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
                            temp=json.dumps(temp),
                            hum=json.dumps(hum),
-                           ftime=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in ftime]),
+                           ftime=json.dumps(ftime),
                            ftemp=json.dumps(ftemp),
                            fhum=json.dumps(fhum),
                            shapes=json.dumps(shapes))
