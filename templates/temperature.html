@@ -85,7 +85,10 @@ var layout = {
     title: 'Amount [ppm]',
     overlaying: 'y',
     side: 'right',
-    range: [0,1000], dtick: 1000/25
+    range: [0,1000], dtick: 1000/25,
+    anchor: "free",
+    overlaying: "y",
+    position: 0.85
   },
   shapes: {{ shapes|safe}}
 };

@@ -42,6 +42,7 @@ class Measurement(db.Model):
     humidity = db.Column(db.Float, unique=False, nullable=False)
     CO2 = db.Column(db.Float, unique=False, nullable=False)
     VOC = db.Column(db.Float, unique=False, nullable=False)
+    brightness = db.Column(db.Float, unique=False, default=0)
 
 
 class Sunpath(db.Model):
