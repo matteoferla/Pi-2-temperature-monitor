@@ -50,7 +50,27 @@ var trace1b = {
   mode: 'lines'
 };
 
-var data = [trace1, trace1b, trace2, trace2b];
+var trace3 = {
+  x: {{dt|safe}},
+  y: {{CO2|safe}},
+  name: 'CO_2',
+  yaxis: 'y3',
+  type: 'scatter',
+  line: {color: '#8c564b'},
+  mode: 'lines'
+};
+
+var trace4 = {
+  x: {{dt|safe}},
+  y: {{VOC|safe}},
+  name: 'TVOC',
+  yaxis: 'y3',
+  type: 'scatter',
+  line: {color: '#2ca02c'},
+  mode: 'lines'
+};
+
+var data = [trace1, trace1b, trace2, trace2b, trace3, trace4];
 
 var layout = {
   title: 'Bedroom temperature',
@@ -60,6 +80,12 @@ var layout = {
     overlaying: 'y',
     side: 'right',
     range: [0,100], dtick: 100/25
+  },
+  yaxis3: {
+    title: 'Amount [ppm]',
+    overlaying: 'y',
+    side: 'right',
+    range: [0,1000], dtick: 1000/25
   },
   shapes: {{ shapes|safe}}
 };
