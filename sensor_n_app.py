@@ -94,14 +94,18 @@ def get_data():
     dt = []
     temp = []
     hum = []
+    CO2 = []
+    VOC = []
     #db.session.count(Measurement)
     for m in Measurement.query.all():
         temp.append(m.temperature)
         dt.append(m.datetime)
         hum.append(m.humidity)
+        CO2.append(m.CO2)
+        VOC.append(m.VOC)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
-    return dt, smooth(temp), smooth(hum)
+    return dt, smooth(temp), smooth(hum), smooth(CO2), smooth(VOC)
 
 def fetch_sunpath(date):
     standard='%Y-%m-%dT%H:%M:%S+00:00'
@@ -178,7 +182,7 @@ def get_forecast(dt):
 
 @app.route('/')
 def serve_data():
-    dt, temp, hum = get_data()
+    dt, temp, hum, CO2, VOC = get_data()
     nights, twilights = get_nighttime(dt)
     ftime, ftemp, fhum = get_forecast(dt)
     shapes = [
@@ -211,6 +215,8 @@ def serve_data():
                            dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
                            temp=json.dumps(temp),
                            hum=json.dumps(hum),
+                           CO2=json.dumps(CO2),
+                           VOC=json.dumps(VOC),
                            ftime=json.dumps(ftime),
                            ftemp=json.dumps(ftemp),
                            fhum=json.dumps(fhum),
