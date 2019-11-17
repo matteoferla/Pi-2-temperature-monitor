@@ -118,7 +118,7 @@ def fetch_forecast(dtime):
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
         hours = [datetime.utcfromtimestamp(hr['time']) for hr in data['hourly']['data']]
-        icon = data['daily'][0]['data']['icon']
+        icon = data['daily']['data'][0]['icon']
         historical = dtime.date() != datetime.now().date()
         f = Forecast(date=dtime.date(),
                      historical=historical,
