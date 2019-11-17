@@ -22,6 +22,9 @@ if wd:
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///temperature.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+lat = 51.746000
+lon = -1.258200
+standard = '%Y-%m-%d %H:%M:%S'
 
 db = SQLAlchemy(app)
 
@@ -47,6 +50,34 @@ class Sunpath(db.Model):
     sunset = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
     dusk = db.Column(db.DateTime(timezone=True), unique=True, nullable=False)
 
+class ArrayType(db.TypeDecorator):
+    """ Sqlite-like does not support arrays.
+        http://davidemoro.blogspot.com/2014/10/sqlite-array-type-and-python-sqlalchemy.html
+    """
+    impl = db.String
+
+    def process_bind_param(self, value, dialect):
+        return json.dumps(value)
+
+    def process_result_value(self, value, dialect):
+        return json.loads(value)
+
+    def copy(self):
+        return ArrayType(self.impl.length)
+
+class Forecast(db.Model):
+    """
+    The table containing the forecast details
+    """
+    __tablename__ = 'forecast'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    historical = db.Column(db.Boolean, default=True)
+    hourly_temperature = db.Column(ArrayType)
+    hourly_humidity = db.Column(ArrayType)
+    hours = db.Column(ArrayType)
+    icon = db.Column(db.String) #clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night
+
 engine = db.create_engine(app.config["SQLALCHEMY_DATABASE_URI"], {})
 
 ######################################################
@@ -68,7 +99,7 @@ def get_data():
 
 def fetch_sunpath(date):
     standard='%Y-%m-%dT%H:%M:%S+00:00'
-    url = 'https://api.sunrise-sunset.org/json?lat=51.746000&lng=-1.258200'
+    url = f'https://api.sunrise-sunset.org/json?lat={lat}&lng={lon}'
     data = requests.get(f'{url}&date={date.year}-{date.month}-{date.day}&formatted=0').json()['results']
     s = Sunpath(date=date,
                 dawn=datetime.strptime(data['civil_twilight_begin'], standard),
@@ -79,8 +110,27 @@ def fetch_sunpath(date):
     db.session.add(s)
     db.session.commit()
 
+def fetch_forecast(dtime):
+        demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
+        ut = dtime.timestamp() # date has no timestamp
+        url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{ut}'
+        data = requests.get(f'{url}&date={dtime.year}-{dtime.month}-{dtime.day}&formatted=0').json()
+        temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
+        hum = [hr['humidity']*100 for hr in data['hourly']['data']]
+        hours = [datetime.utcfromtimestamp(hr['time']) for hr in data['hourly']['data']]
+        icon = data['daily']['data']['icon']
+        historical = dtime.date() != datetime.now().date()
+        f = Forecast(date=dtime.date(),
+                     historical=historical,
+                     hourly_temperature=temp,
+                     hourly_humidity=hum,
+                     hours=hours,
+                     icon=icon)
+        db.session.add(f)
+        db.session.commit()
+
+
 def get_nighttime(dt):
-    standard = '%Y-%m-%d %H:%M:%S'
     for dtime in dt:
         date = dtime.date()
         if Sunpath.query.filter(Sunpath.date == date).first() is None:
@@ -101,12 +151,26 @@ def get_nighttime(dt):
     nights.append([previous.strftime(standard), ender.strftime(standard)])
     return nights, twilights
 
-
+def get_forecast(dt):
+    for dtime in dt:
+        if Forecast.query.filter(Forecast.date == dtime.date()).first() is None:
+            fetch_forecast(dtime)
+    ftime  = []
+    ftemp = []
+    fhum = []
+    for day in Forecast.query.order_by(Sunpath.date).all():
+        if day.historical is False and day.date != datetime.now().date():
+            fetch_forecast(datetime(day.date.year, day.date.month, day.date.day))
+        ftime.extend(day.hours)
+        ftemp.extend(day.hourly_temperature)
+        fhum.extend(day.hourly_humidity)
+    return ftime, ftemp, fhum
 
 @app.route('/')
 def serve_data():
     dt, temp, hum = get_data()
     nights, twilights = get_nighttime(dt)
+    ftime, ftemp, fhum = get_forecast(dt)
     shapes = [
                 {'type': 'rect',
                 'xref': 'x',
@@ -134,10 +198,13 @@ def serve_data():
                  'layer': 'below'
                  } for a, b in twilights]
     return render_template('temperature.html',
-                                  dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
-                                  temp=json.dumps(temp),
-                                  hum=json.dumps(hum),
-                                  shapes=json.dumps(shapes))
+                           dt=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in dt]),
+                           temp=json.dumps(temp),
+                           hum=json.dumps(hum),
+                           ftime=json.dumps([d.strftime('%Y-%m-%d %H:%M:%S') for d in ftime]),
+                           ftemp=json.dumps(ftemp),
+                           fhum=json.dumps(fhum),
+                           shapes=json.dumps(shapes))
 
 ######################################################
 ## SENSING CORE
@@ -163,7 +230,6 @@ def sense():
             m = Measurement(datetime=tick, temperature=sum(temps)/l, humidity=sum(hums)/l)
             db.session.add(m)
             db.session.commit()
-
 
 ######################################################
 ## Main

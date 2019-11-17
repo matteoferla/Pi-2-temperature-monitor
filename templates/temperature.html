@@ -16,7 +16,9 @@
   x: {{dt|safe}},
   y: {{temp|safe}},
   name: 'temperature',
-  type: 'scatter'
+  type: 'scatter',
+  line: {color: '#ff7f0e'},
+  mode: 'lines'
 };
 
 var trace2 = {
@@ -24,10 +26,31 @@ var trace2 = {
   y: {{hum|safe}},
   name: 'humidity',
   yaxis: 'y2',
-  type: 'scatter'
+  type: 'scatter',
+  line: {color: '#1f77b4'},
+  mode: 'lines'
 };
 
-var data = [trace1, trace2];
+var trace2b = {
+  x: {{ftime|safe}},
+  y: {{fhum|safe}},
+  name: 'Outside humidity',
+  yaxis: 'y2',
+  type: 'scatter',
+  line: {color: '#1f77b4', dash: 'dashdot'},
+  mode: 'lines'
+};
+
+var trace1b = {
+  x: {{ftime|safe}},
+  y: {{ftemp|safe}},
+  name: 'Outside temperature',
+  type: 'scatter',
+  line: {color: '#ff7f0e', dash: 'dashdot'},
+  mode: 'lines'
+};
+
+var data = [trace1, trace2, trace1b, trace2b];
 
 var layout = {
   title: 'Bedroom temperature',
