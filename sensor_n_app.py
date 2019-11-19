@@ -130,14 +130,24 @@ def fetch_forecast(dtime):
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
         hours = [datetime.utcfromtimestamp(hr['time']).strftime(standard) for hr in data['hourly']['data']]
         icon = data['daily']['data'][0]['icon']
-        historical = dtime.date() != datetime.now().date()
-        f = Forecast(date=dtime.date(),
+        date = dtime.date()
+        historical = date != datetime.now().date()
+        f = Forecast(date=date,
                      historical=historical,
                      hourly_temperature=temp,
                      hourly_humidity=hum,
                      hours=hours,
                      icon=icon)
-        db.session.add(f)
+        if db.session.query.filter(Forecast.date == date).first() is None:
+            db.session.add(f)
+        else:
+            old = db.session.query.filter(Forecast.date == date).first()
+            old.historical = historical
+            old.hourly_temperature = temp
+            old.hourly_humidity = hum
+            old.hours = hours
+            old.icon = icon
+            db.session.add(old) #update.
         db.session.commit()
 
 
