@@ -15,7 +15,7 @@
   var trace1 = {
   x: {{dt|safe}},
   y: {{temp|safe}},
-  name: 'temperature',
+  name: 'Temperature',
   type: 'scatter',
   line: {color: '#ff7f0e'},
   mode: 'lines'
@@ -24,7 +24,7 @@
 var trace2 = {
   x: {{dt|safe}},
   y: {{hum|safe}},
-  name: 'humidity',
+  name: 'Humidity',
   yaxis: 'y2',
   type: 'scatter',
   line: {color: '#1f77b4'},
@@ -86,7 +86,7 @@ var layout = {
     title: 'Amount [ppm]',
     overlaying: 'y',
     side: 'right',
-    range: [0,1000], dtick: 1000/25,
+    range: [0,1000], dtick: 2500/25,
     anchor: "free",
     overlaying: "y",
     position: 0.85
