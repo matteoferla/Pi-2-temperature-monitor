@@ -138,10 +138,10 @@ def fetch_forecast(dtime):
                      hourly_humidity=hum,
                      hours=hours,
                      icon=icon)
-        if db.session.query.filter(Forecast.date == date).first() is None:
+        if db.session.query(Forecast).filter(Forecast.date == date).first() is None:
             db.session.add(f)
         else:
-            old = db.session.query.filter(Forecast.date == date).first()
+            old = db.session.query(Forecast).filter(Forecast.date == date).first()
             old.historical = historical
             old.hourly_temperature = temp
             old.hourly_humidity = hum
