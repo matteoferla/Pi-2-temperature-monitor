@@ -246,7 +246,10 @@ def serve_data():
                            ftime=json.dumps(ftime),
                            ftemp=json.dumps(ftemp),
                            fhum=json.dumps(fhum),
-                           shapes=json.dumps(shapes))
+                           shapes=json.dumps(shapes),
+                           today=str(datetime.now().date()),
+                           yesterday=str((datetime.now() - timedelta(days=1)).date()),
+                           threedaysago=str((datetime.now() - timedelta(days=3)).date()))
 
 ######################################################
 ## SENSING CORE
