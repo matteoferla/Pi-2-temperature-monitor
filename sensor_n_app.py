@@ -160,7 +160,9 @@ def get_nighttime(dates):
     nights = []
     twilights = []
     day = None
-    for day in Sunpath.query.order_by(Sunpath.date).all():
+    for day in Sunpath.query.filter(Sunpath.date >= min(dates))\
+                            .filter(Sunpath.date <= max(dates))\
+                            .order_by(Sunpath.date).all():
         if previous is None:
             date = day.date
             previous = datetime.combine(date, dtime.min)
