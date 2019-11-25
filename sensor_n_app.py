@@ -205,7 +205,7 @@ def serve_data():
     if 'start' in request.args:
         start = datetime(*map(int,request.args.get('start').split('-')))
     else:
-        start = datetime.combine(datetime.now() - timedelta(days= 5).date(), dtime.min)
+        start = datetime.combine((datetime.now() - timedelta(days= 5)).date(), dtime.min)
     dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
     # stop and start my be out of bounds.
     days = {d.date() for d in dt}
