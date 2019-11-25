@@ -105,7 +105,7 @@ def get_sensor_data(start, stop):
         dt.append(m.datetime)
         hum.append(m.humidity)
         CO2.append(m.CO2)
-        VOC.append(m.VOC)
+        VOC.append(m.VOC/1000)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
     return dt, smooth(temp), smooth(hum), smooth(CO2), smooth(VOC)
