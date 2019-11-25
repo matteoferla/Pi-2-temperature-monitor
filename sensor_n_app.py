@@ -192,12 +192,12 @@ def get_forecast(dates):
 
 @app.route('/')
 def serve_data():
-    if 'stop' in request.args.get:
+    if 'stop' in request.args:
         #%Y-%m-%d
         stop = datetime(map(int,*request.args.get('stop').split('-')))
     else:
         stop = datetime.now()
-    if 'start' in request.args.get:
+    if 'start' in request.args:
         start = datetime(map(int,*request.args.get('start').split('-')))
     else:
         start = datetime.now() - timedelta(days= 5)
