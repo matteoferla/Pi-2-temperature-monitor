@@ -185,8 +185,8 @@ def get_forecast(dates):
     ftime  = []
     ftemp = []
     fhum = []
-    for day in Forecast.query.filter(Sunpath.date >= min(dates))\
-                             .filter(Sunpath.date <= max(dates))\
+    for day in Forecast.query.filter(Forecast.date >= min(dates))\
+                             .filter(Forecast.date <= max(dates))\
                              .order_by(Forecast.date).all():
         if day.historical is False and day.date != datetime.now().date():
             fetch_forecast(day)
