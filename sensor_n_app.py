@@ -91,7 +91,7 @@ engine = db.create_engine(app.config["SQLALCHEMY_DATABASE_URI"], {})
 ## Single view
 ######################################################
 
-def get_data():
+def get_sensor_data():
     dt = []
     temp = []
     hum = []
@@ -121,16 +121,15 @@ def fetch_sunpath(date):
     db.session.add(s)
     db.session.commit()
 
-def fetch_forecast(dtime):
+def fetch_forecast(date):
         demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
-        ut = dtime.timestamp() # date has no timestamp
+        ut = datetime(year=date.year, month=date.month, day=date.day).timestamp() # date has no timestamp
         url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{round(ut)}'
         data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
         hours = [datetime.utcfromtimestamp(hr['time']).strftime(standard) for hr in data['hourly']['data']]
         icon = data['daily']['data'][0]['icon']
-        date = dtime.date()
         historical = date != datetime.now().date()
         f = Forecast(date=date,
                      historical=historical,
@@ -151,9 +150,8 @@ def fetch_forecast(dtime):
         db.session.commit()
 
 
-def get_nighttime(dt):
-    for dtime in dt:
-        date = dtime.date()
+def get_nighttime(dates):
+    for date in dates:
         if Sunpath.query.filter(Sunpath.date == date).first() is None:
             fetch_sunpath(date)
     previous = None
@@ -176,10 +174,10 @@ def get_nighttime(dt):
         print('NO DATA! Is this the first run?')
     return nights, twilights
 
-def get_forecast(dt):
-    for dtime in dt:
-        if Forecast.query.filter(Forecast.date == dtime.date()).first() is None:
-            fetch_forecast(dtime)
+def get_forecast(dates):
+    for day in dates:
+        if Forecast.query.filter(Forecast.date == day).first() is None:
+            fetch_forecast(day)
     ftime  = []
     ftemp = []
     fhum = []
@@ -193,9 +191,10 @@ def get_forecast(dt):
 
 @app.route('/')
 def serve_data():
-    dt, temp, hum, CO2, VOC = get_data()
-    nights, twilights = get_nighttime(dt)
-    ftime, ftemp, fhum = get_forecast(dt)
+    dt, temp, hum, CO2, VOC = get_sensor_data()
+    days = {d.date() for d in dt}
+    nights, twilights = get_nighttime(days)
+    ftime, ftemp, fhum = get_forecast(days)
     shapes = [
                 {'type': 'rect',
                 'xref': 'x',
