@@ -12,7 +12,8 @@ import board
 import busio
 import adafruit_sgp30
 import os
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
+from datetime import time as dtime
 
 wd = os.path.split(__file__)[0]
 if wd:
@@ -124,7 +125,7 @@ def fetch_sunpath(date):
 
 def fetch_forecast(date):
         demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
-        ut = datetime.combine(date, time.min).timestamp() # date has no timestamp
+        ut = datetime.combine(date, dtime.min).timestamp() # date has no timestamp
         url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{round(ut)}'
         data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
@@ -162,14 +163,14 @@ def get_nighttime(dates):
     for day in Sunpath.query.order_by(Sunpath.date).all():
         if previous is None:
             date = day.date
-            previous = datetime.combine(date, time.min)
+            previous = datetime.combine(date, dtime.min)
         nights.append([previous.strftime(standard), day.dawn.strftime(standard)])
         previous = day.dusk
         twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
         twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
     if not day is None:
         d = day.date
-        ender = datetime.combine(d, time.max)
+        ender = datetime.combine(d, dtime.max)
         nights.append([previous.strftime(standard), ender.strftime(standard)])
     else:
         print('NO DATA! Is this the first run?')
