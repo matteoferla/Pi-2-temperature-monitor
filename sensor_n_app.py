@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
 #from scipy.signal import savgol_filter
@@ -12,7 +12,7 @@ import board
 import busio
 import adafruit_sgp30
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, time
 
 wd = os.path.split(__file__)[0]
 if wd:
@@ -91,14 +91,15 @@ engine = db.create_engine(app.config["SQLALCHEMY_DATABASE_URI"], {})
 ## Single view
 ######################################################
 
-def get_sensor_data():
+def get_sensor_data(start, stop):
     dt = []
     temp = []
     hum = []
     CO2 = []
     VOC = []
     #db.session.count(Measurement)
-    for m in Measurement.query.all():
+    for m in Measurement.query.filter(Measurement.datetime > start)\
+                               .filter(Measurement.datetime < stop).all(): #Measurement.query.all():
         temp.append(m.temperature)
         dt.append(m.datetime)
         hum.append(m.humidity)
@@ -123,7 +124,7 @@ def fetch_sunpath(date):
 
 def fetch_forecast(date):
         demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
-        ut = datetime(year=date.year, month=date.month, day=date.day).timestamp() # date has no timestamp
+        ut = datetime.combine(date, time.min).timestamp() # date has no timestamp
         url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{round(ut)}'
         data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
@@ -160,15 +161,15 @@ def get_nighttime(dates):
     day = None
     for day in Sunpath.query.order_by(Sunpath.date).all():
         if previous is None:
-            d = day.date
-            previous = datetime(d.year, d.month, d.day, 0, 0, 0)
+            date = day.date
+            previous = datetime.combine(date, time.min)
         nights.append([previous.strftime(standard), day.dawn.strftime(standard)])
         previous = day.dusk
         twilights.append([day.dawn.strftime(standard), day.sunrise.strftime(standard)])
         twilights.append([day.sunset.strftime(standard), day.dusk.strftime(standard)])
     if not day is None:
         d = day.date
-        ender = datetime(d.year, d.month, d.day, 23, 59, 59)
+        ender = datetime.combine(d, time.max)
         nights.append([previous.strftime(standard), ender.strftime(standard)])
     else:
         print('NO DATA! Is this the first run?')
@@ -183,7 +184,7 @@ def get_forecast(dates):
     fhum = []
     for day in Forecast.query.order_by(Forecast.date).all():
         if day.historical is False and day.date != datetime.now().date():
-            fetch_forecast(datetime(day.date.year, day.date.month, day.date.day))
+            fetch_forecast(day)
         ftime.extend(day.hours)
         ftemp.extend(day.hourly_temperature)
         fhum.extend(day.hourly_humidity)
@@ -191,7 +192,17 @@ def get_forecast(dates):
 
 @app.route('/')
 def serve_data():
-    dt, temp, hum, CO2, VOC = get_sensor_data()
+    if 'stop' in request.args.get:
+        #%Y-%m-%d
+        stop = datetime(map(int,*request.args.get('stop').split('-')))
+    else:
+        stop = datetime.now()
+    if 'start' in request.args.get:
+        start = datetime(map(int,*request.args.get('start').split('-')))
+    else:
+        start = datetime.now() - timedelta(days= 5)
+    dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
+    # stop and start my be out of bounds.
     days = {d.date() for d in dt}
     nights, twilights = get_nighttime(days)
     ftime, ftemp, fhum = get_forecast(days)
