@@ -185,7 +185,9 @@ def get_forecast(dates):
     ftime  = []
     ftemp = []
     fhum = []
-    for day in Forecast.query.order_by(Forecast.date).all():
+    for day in Forecast.query.filter(Sunpath.date >= min(dates))\
+                             .filter(Sunpath.date <= max(dates))\
+                             .order_by(Forecast.date).all():
         if day.historical is False and day.date != datetime.now().date():
             fetch_forecast(day)
         ftime.extend(day.hours)
@@ -203,7 +205,7 @@ def serve_data():
     if 'start' in request.args:
         start = datetime(*map(int,request.args.get('start').split('-')))
     else:
-        start = datetime.now() - timedelta(days= 5)
+        start = datetime.combine(datetime.now() - timedelta(days= 5).date(), dtime.min)
     dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
     # stop and start my be out of bounds.
     days = {d.date() for d in dt}
