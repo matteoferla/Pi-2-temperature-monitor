@@ -249,7 +249,8 @@ def serve_data():
                            shapes=json.dumps(shapes),
                            today=str(datetime.now().date()),
                            yesterday=str((datetime.now() - timedelta(days=1)).date()),
-                           threedaysago=str((datetime.now() - timedelta(days=3)).date()))
+                           threedaysago=str((datetime.now() - timedelta(days=3)).date()),
+                           aweekago=str((datetime.now() - timedelta(days=7)).date()))
 
 ######################################################
 ## SENSING CORE

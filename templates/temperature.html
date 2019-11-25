@@ -11,8 +11,9 @@
 <body>
   <a href="https://github.com/matteoferla/Temperature-moniting-website-via-Rasberry-Pi">Go to repo</a>
   <p>For a specific range use <code>/?start=2019-11-23&stop=2019-11-25</code></p>
-  <a href="/?start={{threedaysago|safe}}&stop={{today}}">View the last 3 days</a>
-  <a href="/?start={{yesterday|safe}}&stop={{today}}">View the last 24 hours</a>
+  <a href="/?start={{threedaysago|safe}}&stop={{today}}">View the last 3 days</a> —
+  <a href="/?start={{yesterday|safe}}&stop={{today}}">View the last 24 hours</a> —
+  <a href="/?start={{aweekago|safe}}&stop={{today}}">View the last week</a>
   <div id="graph" style="height:100vh;width:100vw;"></div>
   <script type="text/javascript">
   var trace1 = {
@@ -89,7 +90,7 @@ var layout = {
     title: 'Amount [ppm]',
     overlaying: 'y',
     side: 'right',
-    range: [0,5000], dtick: 5000/25,
+    range: [0,10000], dtick: 10000/25,
     anchor: "free",
     overlaying: "y",
     position: 0.85
