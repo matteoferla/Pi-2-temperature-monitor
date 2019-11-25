@@ -195,11 +195,11 @@ def get_forecast(dates):
 def serve_data():
     if 'stop' in request.args:
         #%Y-%m-%d
-        stop = datetime(map(int,*request.args.get('stop').split('-')))
+        stop = datetime(*map(int,request.args.get('stop').split('-')))
     else:
         stop = datetime.now()
     if 'start' in request.args:
-        start = datetime(map(int,*request.args.get('start').split('-')))
+        start = datetime(*map(int,request.args.get('start').split('-')))
     else:
         start = datetime.now() - timedelta(days= 5)
     dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
