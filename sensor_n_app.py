@@ -126,7 +126,7 @@ def fetch_sunpath(date):
 def fetch_forecast(date):
         demuricanize = lambda fahrenheit: (fahrenheit - 32) * 5/9
         ut = datetime.combine(date, dtime.min).timestamp() # date has no timestamp
-        url = f'https://api.darksky.net/forecast/fcfe4440986d9f1d2d04e81180578692/{lat},{lon},{round(ut)}'
+        url = f'https://api.darksky.net/forecast/{os.environ["darksky_key"]}/{lat},{lon},{round(ut)}'
         data = requests.get(url).json()
         temp = [demuricanize(hr['temperature']) for hr in data['hourly']['data']]
         hum = [hr['humidity']*100 for hr in data['hourly']['data']]
@@ -207,6 +207,7 @@ def serve_data():
     else:
         start = datetime.combine((datetime.now() - timedelta(days= 5)).date(), dtime.min)
     dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
+    CO2 = [c if c < 1e3 else None for c in CO2]
     # stop and start my be out of bounds.
     days = {d.date() for d in dt}
     nights, twilights = get_nighttime(days)
