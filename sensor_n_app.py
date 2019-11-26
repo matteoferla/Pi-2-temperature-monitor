@@ -189,7 +189,7 @@ def get_forecast(dates):
                              .filter(Forecast.date <= max(dates))\
                              .order_by(Forecast.date).all():
         if day.historical is False and day.date != datetime.now().date():
-            fetch_forecast(day)
+            fetch_forecast(day.date)
         ftime.extend(day.hours)
         ftemp.extend(day.hourly_temperature)
         fhum.extend(day.hourly_humidity)
