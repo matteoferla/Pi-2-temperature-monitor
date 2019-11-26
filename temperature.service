@@ -3,7 +3,8 @@ Description=Temperature.
 
 [Service]
 Type=simple
-ExecStart=/home/pi/berryconda3/bin/python3 /home/pi/Pi-2-temperature-monitor/sensor_n_app.py
+Environment=darksky_api=xxxxxxxxxxxxxx
+ExecStart=/home/pi/berryconda3/bin/python3 /home/pi/Temperature-moniting-website-via-Rasberry-Pi/sensor_n_app.py
 
 [Install]
 WantedBy=multi-user.target
