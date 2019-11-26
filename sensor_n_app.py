@@ -12,6 +12,7 @@ import board
 import busio
 import adafruit_sgp30
 import os
+import math
 from datetime import datetime, timedelta
 from datetime import time as dtime
 
@@ -207,7 +208,7 @@ def serve_data():
     else:
         start = datetime.combine((datetime.now() - timedelta(days= 5)).date(), dtime.min)
     dt, temp, hum, CO2, VOC = get_sensor_data(start=start, stop=stop)
-    CO2 = [c if c < 1e3 else None for c in CO2]
+    CO2 = [c if c < 5e3 else None for c in CO2]
     # stop and start my be out of bounds.
     days = {d.date() for d in dt}
     nights, twilights = get_nighttime(days)
@@ -272,8 +273,19 @@ def sense():
         while (datetime.now()-tick).seconds < 300:
             error_count = 0
             (humidity, temperature) = Adafruit_DHT.read(22, 4) #An AM2306 is the same as a DHT22.
+            if humidity is None or temperature is None:
+                continue
+            T = temperature + 273.15
+            p = 1e5
+            rho = 1.225
+            es = 611.2 * math.exp(17.67 * (T - 273.15) / (T - 29.65))
+            rvs = 0.622 * es / (p - es)
+            rv = humidity / 100. * rvs
+            qv = rv / (1 + rv)
+            AH = qv * rho
+            sgp30.set_iaq_humidity(AH * 1e3)
             measured_CO2, measured_VOC = sgp30.iaq_measure()
-            if humidity is not None and temperature is not None and measured_CO2 is not None and measured_VOC is not None:
+            if measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
                 hums.append(humidity)
                 CO2.append(measured_CO2)
