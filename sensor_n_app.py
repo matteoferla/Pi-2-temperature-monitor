@@ -275,6 +275,7 @@ def sense():
             (humidity, temperature) = Adafruit_DHT.read(22, 4) #An AM2306 is the same as a DHT22.
             if humidity is None or temperature is None:
                 continue
+            # convert RH to AH (g/m^3)
             T = temperature + 273.15
             p = 1e5
             rho = 1.225
@@ -283,7 +284,8 @@ def sense():
             rv = humidity / 100. * rvs
             qv = rv / (1 + rv)
             AH = qv * rho
-            sgp30.set_iaq_humidity(AH * 1e3)
+            #sgp30.set_iaq_humidity(AH * 1e3) #Testing to see if manual is wrong.
+            sgp30.set_iaq_humidity(humidity)
             measured_CO2, measured_VOC = sgp30.iaq_measure()
             if measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
