@@ -16,7 +16,7 @@ NB2. I have had no success getting python 3.7 on a pi 3. So this is all 3.6.
 # Setup
 
 Fresh microSD card: `Raspbian Buster with desktop and recommended software` installed with `BalenaEtcher.app`.
-Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface`.
+Pi with LCD: start-up, set wifi and activate ssh in `preferences/interface` along with I2C.
 
 
 ## Conda
@@ -152,7 +152,11 @@ If I am using apache2.
 
 # Wiring
 GPIO 4 is #7. 
-3.3V. On upgrade I'll use a level shifter and use the 5V.
+DHT22 works fine with 3.3V but seemed to glitch once or twice, so added TLL.
+
+
+![wiring.jpg](wiring.jpg)
+
 
 # Software upgrades
 
@@ -164,8 +168,6 @@ There is a silliness.
 # Hardware upgrades
 
 I am going to switching to Adafruit DHR_22 and SGP30 Air Quality Sensor in order to get better temperature readings and CO2 levels. I could add a barometer and I think I have one. I have a MQ-2 gas sensor (organics), but I am not sure I need a methane sensor.
-
-
 
 
 I technically have a AM3202, not a DHT22. It accepts 3.3V, is it better with 5V? I think so.
