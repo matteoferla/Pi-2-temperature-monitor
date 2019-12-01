@@ -300,7 +300,7 @@ def sense():
                     CO2base = measured_CO2
                     VOCbase = measured_VOC
                 else:
-                    log.write(f'{datetime.now()} CO2 {measured_CO2} changed to {CO2base}.')
+                    log.write(f'{datetime.now()} CO2 {measured_CO2} changed to {CO2base}.\n')
                     CO2.append(CO2base)
                     VOC.append(VOCbase)
             else:
