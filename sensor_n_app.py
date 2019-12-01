@@ -20,6 +20,8 @@ wd = os.path.split(__file__)[0]
 if wd:
     os.chdir(wd)
 
+log = open('log.txt', 'w')
+
 ######################################################
 ## App & Models
 ######################################################
@@ -264,6 +266,8 @@ sgp30.iaq_init()
 sgp30.set_iaq_baseline(0x8973, 0x8aae)
 
 def sense():
+    CO2base = 400
+    VOCbase = 0
     while True:
         tick = datetime.now()
         temps = []
@@ -283,15 +287,22 @@ def sense():
             rvs = 0.622 * es / (p - es)
             rv = humidity / 100. * rvs
             qv = rv / (1 + rv)
-            AH = qv * rho
-            #sgp30.set_iaq_humidity(AH * 1e3) #Testing to see if manual is wrong.
-            sgp30.set_iaq_humidity(humidity)
+            AH = qv * rho * 1e3
+            sgp30.set_iaq_humidity(AH)
+            #sgp30.set_iaq_humidity(humidity)
             measured_CO2, measured_VOC = sgp30.iaq_measure()
             if measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
                 hums.append(humidity)
-                CO2.append(measured_CO2)
-                VOC.append(measured_VOC)
+                if (measured_CO2/min(CO2base,measured_CO2)) < 2:
+                    CO2.append(measured_CO2)
+                    VOC.append(measured_VOC)
+                    CO2base = measured_CO2
+                    VOCbase = measured_VOC
+                else:
+                    log.write(f'{datetime.now()} CO2 {measured_CO2} changed to {CO2base}.')
+                    CO2.append(CO2base)
+                    VOC.append(VOCbase)
             else:
                 error_count += 1
                 #print("Sensor failure. Check wiring!")
