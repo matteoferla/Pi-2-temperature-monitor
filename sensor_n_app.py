@@ -20,8 +20,6 @@ wd = os.path.split(__file__)[0]
 if wd:
     os.chdir(wd)
 
-log = open('log.txt', 'w')
-
 ######################################################
 ## App & Models
 ######################################################
@@ -294,13 +292,14 @@ def sense():
             if measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
                 hums.append(humidity)
-                if (measured_CO2/min(CO2base,measured_CO2)) < 2:
+                if measured_CO2/CO2base < 2:
                     CO2.append(measured_CO2)
                     VOC.append(measured_VOC)
                     CO2base = measured_CO2
                     VOCbase = measured_VOC
                 else:
-                    log.write(f'{datetime.now()} CO2 {measured_CO2} changed to {CO2base}.\n')
+                    with open('log.txt', 'a') as log:
+                        log.write(f'{datetime.now()} CO2 {measured_CO2} drastically changed to {CO2base}.\n')
                     CO2.append(CO2base)
                     VOC.append(VOCbase)
             else:
