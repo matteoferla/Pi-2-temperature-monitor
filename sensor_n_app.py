@@ -295,8 +295,6 @@ def sense():
                 if measured_CO2/CO2base < 2:
                     CO2.append(measured_CO2)
                     VOC.append(measured_VOC)
-                    CO2base = measured_CO2
-                    VOCbase = measured_VOC
                 else:
                     with open('log.txt', 'a') as log:
                         log.write(f'{datetime.now()} CO2 {measured_CO2} drastically changed to {CO2base}.\n')
@@ -308,11 +306,13 @@ def sense():
             time.sleep(5)
         else:
             l = len(temps)
+            CO2base = sum(CO2)/l
+            VOCbase = sum(VOC)/l
             m = Measurement(datetime=tick,
                             temperature=sum(temps)/l,
                             humidity=sum(hums)/l,
-                            CO2=sum(CO2)/l,
-                            VOC=sum(VOC)/l)
+                            CO2=CO2base ,
+                            VOC=VOCbase)
             db.session.add(m)
             db.session.commit()
 
