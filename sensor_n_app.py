@@ -106,7 +106,7 @@ def get_sensor_data(start, stop):
         dt.append(m.datetime)
         hum.append(m.humidity)
         CO2.append(m.CO2)
-        VOC.append(m.VOC)
+        VOC.append(m.VOC/1e3)
     #smooth = lambda a: savgol_filter(a, 31, 3).tolist()
     smooth = lambda a: a
     return dt, smooth(temp), smooth(hum), smooth(CO2), smooth(VOC)
@@ -263,7 +263,7 @@ sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
 sgp30.iaq_init()
 sgp30.set_iaq_baseline(0x8973, 0x8aae)
 
-def sense():
+def sense(prevent_jumps=False):
     CO2base = 400
     VOCbase = 0
     while True:
@@ -292,12 +292,12 @@ def sense():
             if measured_CO2 is not None and measured_VOC is not None:
                 temps.append(temperature)
                 hums.append(humidity)
-                if measured_CO2/CO2base < 2:
+                if measured_CO2/CO2base < 2 or not prevent_jumps:
                     CO2.append(measured_CO2)
                     VOC.append(measured_VOC)
                 else:
                     with open('log.txt', 'a') as log:
-                        log.write(f'{datetime.now()} CO2 {measured_CO2} drastically changed to {CO2base}.\n')
+                        log.write(f'{datetime.now()} CO2 {measured_CO2} drastically changed from {CO2base}.\n')
                     CO2.append(CO2base)
                     VOC.append(VOCbase)
             else:
