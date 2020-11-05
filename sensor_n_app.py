@@ -274,7 +274,8 @@ def sense(prevent_jumps=False):
         VOC = []
         while (datetime.now()-tick).seconds < 300:
             error_count = 0
-            (humidity, temperature) = Adafruit_DHT.read(22, 4) #An AM2306 is the same as a DHT22.
+            # changed from GPIO4 to 17.
+            (humidity, temperature) = Adafruit_DHT.read(22, 17) #An AM2306 is the same as a DHT22.
             if humidity is None or temperature is None:
                 continue
             # convert RH to AH (g/m^3)
