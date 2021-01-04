@@ -1,5 +1,8 @@
 # Temperature monitor and webapp for Raspberry pi
-Temperature sensor, logger and [site](http://temperature.matteoferla.com/).
+
+> This project is long abandonned and has given way to [a newer one](https://github.com/matteoferla/Somewhat-Smart-Home), wherein multiple sensors from across the house send data to a central Pi (which serves the data on [https://temperature.matteoferla.com/](temperature.matteoferla.com).
+
+Temperature sensor, logger and site.
 
 Namely, sensor collects data every half-minute, currently DHR-11 and a Waitress served Flask app shows the data on port 8000 as a nice interactive plotly graph.
 
