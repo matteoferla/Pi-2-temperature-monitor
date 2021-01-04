@@ -1,6 +1,6 @@
 # Temperature monitor and webapp for Raspberry pi
 
-> This project is long abandonned and has given way to [a newer one](https://github.com/matteoferla/Somewhat-Smart-Home), wherein multiple sensors from across the house send data to a central Pi (which serves the data on [https://temperature.matteoferla.com/](temperature.matteoferla.com).
+> This project is long abandonned and has given way to [a newer one](https://github.com/matteoferla/Somewhat-Smart-Home), wherein multiple sensors from across the house send data to a central Pi (which serves the data on [temperature.matteoferla.com](https://temperature.matteoferla.com/).
 
 Temperature sensor, logger and site.
 
